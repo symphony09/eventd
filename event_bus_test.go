@@ -1,10 +1,12 @@
-package eventd
+package eventd_test
 
 import (
 	"fmt"
 	"math"
 	"testing"
 	"time"
+
+	. "github.com/symphony09/eventd"
 )
 
 func TestEventBus(t *testing.T) {

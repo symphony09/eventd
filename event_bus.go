@@ -116,3 +116,11 @@ func (bus *EventBus[T]) Emit(event string, object T) {
 		}
 	}
 }
+
+func (bus *EventBus[T]) Notify(event string, obj any) {
+	if obj == nil {
+		bus.Emit(event, *new(T))
+	} else if v, ok := obj.(T); ok {
+		bus.Emit(event, v)
+	}
+}
