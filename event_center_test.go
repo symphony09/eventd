@@ -14,7 +14,7 @@ func TestEventCenter(t *testing.T) {
 	bus1 := new(eventd.EventBus[string])
 	bus2 := new(eventd.EventBus[int])
 
-	center.AddListerner(bus1, bus2)
+	center.AddListener(bus1, bus2)
 
 	bus1.Subscribe(func(event, obj string) bool {
 		if obj == "" {

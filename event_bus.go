@@ -77,15 +77,38 @@ func (bus *EventBus[T]) Emit(event string, object T) {
 		return
 	}
 
-	for targetEvent, r := range bus.eventRegexp {
-		if r.MatchString(event) {
-			syncTrigger := Trigger{
-				Event: targetEvent,
-				Async: false,
-			}
+	var wg sync.WaitGroup
 
-			if chain := bus.callbackChain[syncTrigger]; chain != nil {
-				go func(chain *Chain[CallBack[T]]) {
+	for targetEvent, r := range bus.eventRegexp {
+		wg.Add(1)
+
+		go func(targetEvent string, r *regexp.Regexp) {
+			defer wg.Done()
+
+			if r.MatchString(event) {
+				asyncTrigger := Trigger{
+					Event: targetEvent,
+					Async: true,
+				}
+
+				if chain := bus.callbackChain[asyncTrigger]; chain != nil {
+					go func(chain *Chain[CallBack[T]]) {
+						iterator := chain.Iteration()
+
+						for iterator.Next() {
+							callback := iterator.Get()
+
+							callback(event, object)
+						}
+					}(chain)
+				}
+
+				syncTrigger := Trigger{
+					Event: targetEvent,
+					Async: false,
+				}
+
+				if chain := bus.callbackChain[syncTrigger]; chain != nil {
 					iterator := chain.Iteration()
 
 					for iterator.Next() {
@@ -94,27 +117,12 @@ func (bus *EventBus[T]) Emit(event string, object T) {
 							break
 						}
 					}
-				}(chain)
+				}
 			}
-
-			asyncTrigger := Trigger{
-				Event: targetEvent,
-				Async: true,
-			}
-
-			if chain := bus.callbackChain[asyncTrigger]; chain != nil {
-				go func(chain *Chain[CallBack[T]]) {
-					iterator := chain.Iteration()
-
-					for iterator.Next() {
-						callback := iterator.Get()
-
-						go callback(event, object)
-					}
-				}(chain)
-			}
-		}
+		}(targetEvent, r)
 	}
+
+	wg.Wait()
 }
 
 func (bus *EventBus[T]) Notify(event string, obj any) {

@@ -4,7 +4,7 @@ type EventCenter struct {
 	listeners []Listener
 }
 
-func (center *EventCenter) AddListerner(listeners ...Listener) {
+func (center *EventCenter) AddListener(listeners ...Listener) {
 	center.listeners = append(center.listeners, listeners...)
 }
 
