@@ -98,7 +98,7 @@ func (bus *EventBus[T]) Emit(event string, object T) {
 						for iterator.Next() {
 							callback := iterator.Get()
 
-							callback(event, object)
+							go callback(event, object)
 						}
 					}(chain)
 				}
